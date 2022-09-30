@@ -21,10 +21,11 @@ import cv2
 if sys.version_info[0] < 3:
     raise Exception("You must use Python 3 or higher. Recommended version is Python 3.7")
 
-def load_checkpoints(config_path, checkpoint_path, cpu=False):
-
-    with open(config_path) as f:
-        config = yaml.load(f)
+def load_checkpoints(config_path, checkpoint_path, cpu=False): 
+    with open(config_path, "r") as f:
+        config = yaml.safe_load(f)
+   
+    print('config: ', config)
     if opt.kp_num != -1:
         config['model_params']['common_params']['num_kp'] = opt.kp_num
     generator = getattr(GEN, opt.generator)(**config['model_params']['generator_params'],**config['model_params']['common_params'])
@@ -162,8 +163,8 @@ if __name__ == "__main__":
 
     depth_encoder = depth.ResnetEncoder(18, False)
     depth_decoder = depth.DepthDecoder(num_ch_enc=depth_encoder.num_ch_enc, scales=range(4))
-    loaded_dict_enc = torch.load('depth/models/weights_19/encoder.pth')
-    loaded_dict_dec = torch.load('depth/models/weights_19/depth.pth')
+    loaded_dict_enc = torch.load('depth/models/weights_19/encoder.pth', map_location="cpu")
+    loaded_dict_dec = torch.load('depth/models/weights_19/depth.pth', map_location="cpu")
     filtered_dict_enc = {k: v for k, v in loaded_dict_enc.items() if k in depth_encoder.state_dict()}
     depth_encoder.load_state_dict(filtered_dict_enc)
     depth_decoder.load_state_dict(loaded_dict_dec)
